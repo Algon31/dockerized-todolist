@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-const API = "https://todolist-a40y.onrender.com"; // should not be here
+const API = import.meta.env.VITE_API_URL;
 
 const Body = () => {
   const [todo, settodo] = useState("");
