@@ -1,18 +1,19 @@
 version: '3'
 services:
   frontend:
-    build: ./frontend
+    build: ./Frontend
     ports:
       - "3000:80"
   backend:
-    build: ./backend
+    build: ./Backend
     ports:
       - "3001:3000"
     environment:
       - REDIS_URL=redis://redis:6379
+      - FRONTEND_URL=http://localhost:3000
     depends_on:
       - redis
   redis:
-    image: redis:latest
+    image: redis:alpine
     ports:
       - "6379:6379"

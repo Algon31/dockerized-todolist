@@ -13,6 +13,9 @@ RUN npm install
 # Copy all files for the build process
 COPY . .
 
+ARG VITE_API_URL=http://localhost:3001
+ENV VITE_API_URL=$VITE_API_URL
+
 # Build the frontend app for production
 RUN npm run build
 

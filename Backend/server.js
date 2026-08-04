@@ -9,12 +9,19 @@ const port = process.env.PORT || 3000;
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? [process.env.FrontendURL]
-    : ["http://localhost:3000"];
+    ? [process.env.FRONTEND_URL || "http://localhost:3000"]
+    : ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"];
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // allow requests with no origin (like mobile apps, curl) or allowed origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Allow all in dev/fallback or restrict as needed
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
