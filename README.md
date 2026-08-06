@@ -121,8 +121,7 @@ Running the app with Docker Compose automatically builds and launches all contai
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Algon31/ToDo-list.git
-cd ToDo-list
+git https://github.com/Algon31/dockerized-todolist.git
 ```
 
 ### 2. Build and start the containers
