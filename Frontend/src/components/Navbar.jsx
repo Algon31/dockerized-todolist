@@ -13,7 +13,7 @@ const Navbar = () => {
         </div>
         </div>
         <ul>
-            <li className='hover:cursor-pointer hover:transition-tranfom transform scale-110 hover:font-bold'><a href='https://portfolio-snowy-xi-14.vercel.app/' target='_blank' className=''>contact me</a></li>
+            <li className='hover:cursor-pointer hover:transition-tranfom transform scale-110 hover:font-bold'><a href='https://ravibhuvan31.vercel.app/' target='_blank' className=''>contact me</a></li>
         </ul>
     </nav>
   )
