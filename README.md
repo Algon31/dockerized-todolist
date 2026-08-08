@@ -1,5 +1,7 @@
 # 📝 Dockerized Todo List
 
+[![CI/CD Pipeline](https://github.com/Algon31/dockerized-todolist/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Algon31/dockerized-todolist/actions/workflows/ci-cd.yml)
+
 A full-stack Todo List application built with **React**, **Node.js**, **Express**, and **Redis**, fully containerized using **Docker** and **Docker Compose** for seamless local development and production deployment.
 
 The application allows users to create, edit, mark as completed, delete, and clear daily tasks through a clean, responsive interface.
@@ -158,6 +160,30 @@ docker compose down
 | `PUT` | `/todo/:id` | Update an existing todo text or completion status |
 | `DELETE` | `/todo/:id` | Delete a single todo item by ID |
 | `POST` | `/todo/clear` | Delete all todo items |
+
+---
+
+## 🔄 CI/CD Pipeline
+
+Automated Continuous Integration and Continuous Deployment (CI/CD) is implemented using **GitHub Actions** (`.github/workflows/ci-cd.yml`).
+
+### ⚙️ Pipeline Overview
+
+1. **Backend CI (`test-backend`)**:
+   * Installs Node 18 dependencies.
+   * Runs backend test suite via Jest (`npm test`).
+
+2. **Frontend CI (`test-frontend`)**:
+   * Installs Node 18 dependencies.
+   * Runs ESLint (`npm run lint`).
+   * Executes unit & component tests via Vitest (`npm test`).
+   * Validates production application build (`npm run build`).
+
+3. **Docker Build & Push CD (`build-and-push`)**:
+   * Triggered automatically after tests pass on `main` branch or tag releases (`v*.*.*`).
+   * Builds production Docker images for **Backend** and **Frontend**.
+   * Pushes tagged container images to **GitHub Container Registry (GHCR)** (`ghcr.io/algon31/todo-backend`, `ghcr.io/algon31/todo-frontend`).
+   * Optionally logs into Docker Hub and pushes tagged images if repository secrets (`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`) are configured.
 
 ---
 
