@@ -29,7 +29,7 @@ describe("Todo API Endpoints", () => {
     expect(res.body[0]).toHaveProperty("todo", "Learn Local Testing");
   });
 
-  test("GET /todo with x-session-id should return a list of todos", async () => {
+  test("GET /todo with x-session-id should return a list of todos for that session", async () => {
     const res = await request(app).get("/todo").set("x-session-id", "test-session-123");
     expect(res.statusCode).toEqual(200);
     expect(Array.isArray(res.body)).toBe(true);
@@ -47,5 +47,34 @@ describe("Todo API Endpoints", () => {
       .send(newTodo);
     expect(res.statusCode).toEqual(201);
     expect(res.body).toHaveProperty("message", "Todo saved");
+  });
+
+  test("PUT /todo/:id should update a todo with session", async () => {
+    const updated = {
+      todo: "Master Cloud Infra (Done)",
+      iscompleted: true,
+    };
+    const res = await request(app)
+      .put("/todo/2")
+      .set("x-session-id", "test-session-123")
+      .send(updated);
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("message", "Todo updated");
+  });
+
+  test("DELETE /todo/:id should delete a todo with session", async () => {
+    const res = await request(app)
+      .delete("/todo/2")
+      .set("x-session-id", "test-session-123");
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("message", "Todo deleted");
+  });
+
+  test("POST /todo/clear should clear todos for the session", async () => {
+    const res = await request(app)
+      .post("/todo/clear")
+      .set("x-session-id", "test-session-123");
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("message", "All todos cleared");
   });
 });
