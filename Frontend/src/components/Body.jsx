@@ -4,6 +4,16 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+// Helper to get or generate anonymous session ID for data isolation
+const getOrCreateSessionId = () => {
+  let sessionId = localStorage.getItem("todo_session_id");
+  if (!sessionId) {
+    sessionId = uuidv4();
+    localStorage.setItem("todo_session_id", sessionId);
+  }
+  return sessionId;
+};
+
 const Body = () => {
   const [todo, settodo] = useState("");
   const [todos, settodos] = useState([]);
@@ -11,7 +21,9 @@ const Body = () => {
 
   // Load todos from backend on mount
   useEffect(() => {
-    fetch(`${API}/todo`)
+    fetch(`${API}/todo`, {
+      headers: { "x-session-id": getOrCreateSessionId() },
+    })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch todos");
         return res.json();
@@ -39,7 +51,10 @@ const Body = () => {
 
       fetch(`${API}/todo/${editingId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-session-id": getOrCreateSessionId(),
+        },
         body: JSON.stringify(updatedTodo),
       })
         .then((res) => {
@@ -61,7 +76,10 @@ const Body = () => {
       const newTodo = { id: uuidv4(), todo: todo.trim(), iscompleted: false };
       fetch(`${API}/todo`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-session-id": getOrCreateSessionId(),
+        },
         body: JSON.stringify(newTodo),
       })
         .then((res) => {
@@ -80,6 +98,7 @@ const Body = () => {
   const handleDelete = (id) => {
     fetch(`${API}/todo/${id}`, {
       method: "DELETE",
+      headers: { "x-session-id": getOrCreateSessionId() },
     })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to delete todo");
@@ -112,6 +131,7 @@ const Body = () => {
     if (window.confirm("Are you sure you want to clear all tasks?")) {
       fetch(`${API}/todo/clear`, {
         method: "POST",
+        headers: { "x-session-id": getOrCreateSessionId() },
       })
         .then((res) => {
           if (!res.ok) throw new Error("Failed to clear todos");
@@ -136,7 +156,10 @@ const Body = () => {
 
     fetch(`${API}/todo/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-session-id": getOrCreateSessionId(),
+      },
       body: JSON.stringify(updatedItem),
     })
       .then((res) => {

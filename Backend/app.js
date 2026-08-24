@@ -22,6 +22,7 @@ app.use(
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "x-session-id"],
     credentials: true,
   })
 );

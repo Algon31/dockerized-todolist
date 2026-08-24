@@ -11,6 +11,7 @@ jest.mock("redis", () => {
     hSet: jest.fn().mockResolvedValue(1),
     hDel: jest.fn().mockResolvedValue(1),
     del: jest.fn().mockResolvedValue(1),
+    expire: jest.fn().mockResolvedValue(1),
   };
   return {
     createClient: jest.fn(() => mClient),
@@ -28,13 +29,22 @@ describe("Todo API Endpoints", () => {
     expect(res.body[0]).toHaveProperty("todo", "Learn Local Testing");
   });
 
-  test("POST /todo should create a new todo", async () => {
+  test("GET /todo with x-session-id should return a list of todos", async () => {
+    const res = await request(app).get("/todo").set("x-session-id", "test-session-123");
+    expect(res.statusCode).toEqual(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  test("POST /todo should create a new todo and set session", async () => {
     const newTodo = {
       id: "2",
       todo: "Master Cloud Infra",
       iscompleted: false,
     };
-    const res = await request(app).post("/todo").send(newTodo);
+    const res = await request(app)
+      .post("/todo")
+      .set("x-session-id", "test-session-123")
+      .send(newTodo);
     expect(res.statusCode).toEqual(201);
     expect(res.body).toHaveProperty("message", "Todo saved");
   });

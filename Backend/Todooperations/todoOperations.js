@@ -13,12 +13,18 @@ client.on("error", (err) => {
 
 client.connect();
 
-const REDIS_KEY = "todos";
+const TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days (604,800 seconds)
 
-// Fetch all todos
+const getRedisKey = (req) => {
+  const sessionId = req.headers["x-session-id"] || req.query.sessionId;
+  return sessionId ? `todos:${sessionId}` : "todos:default";
+};
+
+// Fetch all todos for the session
 router.get("/", async (req, res) => {
   try {
-    const todos = await client.hGetAll(REDIS_KEY);
+    const key = getRedisKey(req);
+    const todos = await client.hGetAll(key);
     const todoList = Object.entries(todos || {}).map(([id, value]) => ({
       id,
       ...JSON.parse(value),
@@ -37,7 +43,9 @@ router.post("/", async (req, res) => {
     if (!id || !todo) {
       return res.status(400).json({ error: "Missing required fields (id, todo)" });
     }
-    await client.hSet(REDIS_KEY, id, JSON.stringify({ todo, iscompleted: !!iscompleted }));
+    const key = getRedisKey(req);
+    await client.hSet(key, id, JSON.stringify({ todo, iscompleted: !!iscompleted }));
+    await client.expire(key, TTL_SECONDS);
     res.status(201).json({ message: "Todo saved" });
   } catch (error) {
     console.error("Error saving todo:", error);
@@ -48,7 +56,8 @@ router.post("/", async (req, res) => {
 // Delete a todo
 router.delete("/:id", async (req, res) => {
   try {
-    await client.hDel(REDIS_KEY, req.params.id);
+    const key = getRedisKey(req);
+    await client.hDel(key, req.params.id);
     res.json({ message: "Todo deleted" });
   } catch (error) {
     console.error("Error deleting todo:", error);
@@ -60,11 +69,13 @@ router.delete("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { todo, iscompleted } = req.body;
+    const key = getRedisKey(req);
     await client.hSet(
-      REDIS_KEY,
+      key,
       req.params.id,
       JSON.stringify({ todo, iscompleted: !!iscompleted })
     );
+    await client.expire(key, TTL_SECONDS);
     res.json({ message: "Todo updated" });
   } catch (error) {
     console.error("Error updating todo:", error);
@@ -72,10 +83,11 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// Clear all todos
+// Clear all todos for the session
 router.post("/clear", async (req, res) => {
   try {
-    await client.del(REDIS_KEY);
+    const key = getRedisKey(req);
+    await client.del(key);
     res.json({ message: "All todos cleared" });
   } catch (error) {
     console.error("Error clearing todos:", error);
