@@ -3,11 +3,17 @@ import { describe, it, expect } from 'vitest';
 import '@testing-library/jest-dom';
 import React from 'react';
 import Navbar from './Navbar';
+import { AuthProvider } from '../context/AuthContext';
 
 describe('Navbar Component', () => {
-  it('renders the logo title and contact link', () => {
-    render(<Navbar />);
-    expect(screen.getByText(/ToDo/i)).toBeInTheDocument();
-    expect(screen.getByText(/contact me/i)).toBeInTheDocument();
+  it('renders the brand title and sign in button when unauthenticated', () => {
+    render(
+      <AuthProvider>
+        <Navbar />
+      </AuthProvider>
+    );
+    expect(screen.getByText(/TaskFlow/i)).toBeInTheDocument();
+    expect(screen.getByText(/v2.0/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sign In/i)).toBeInTheDocument();
   });
 });

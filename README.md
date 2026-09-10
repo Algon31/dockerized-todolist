@@ -1,33 +1,30 @@
-# 📝 Dockerized Todo List
+# 📝 Dockerized Todo List V2
 
 [![CI/CD Pipeline](https://github.com/Algon31/dockerized-todolist/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Algon31/dockerized-todolist/actions/workflows/ci-cd.yml)
 
-A full-stack, cloud-native Todo List application built with **React (Vite + NGINX)**, **Node.js (Express)**, and **Redis**, fully containerized using **Docker**, **Docker Compose**, and **Kubernetes** for seamless local development, testing, and production deployment.
+A production-grade, full-stack, cloud-native Todo List application built with **React (Vite + NGINX)**, **Node.js (Express)**, **PostgreSQL 16**, and **Redis 7**, fully containerized using **Docker**, **Docker Compose**, and **Kubernetes**.
 
-The application features **client session isolation** and **automatic Redis TTL data expiration**, allowing visitors to create and manage their own private, temporary todo lists without needing a login account.
+TodoList V2 introduces **User Authentication (JWT + Bcrypt)**, **PostgreSQL Relational Persistence**, and high-performance **Redis-backed Rate Limiting** with automatic request throttling and brute-force mitigation.
 
 ---
 
-## ✨ Features
+## ✨ Features (V2)
 
-* 🔒 **Anonymous Session Isolation**: Each visitor gets an isolated todo list using client-generated session IDs (`x-session-id` header) stored in `localStorage`.
-* ⏳ **Automatic Redis Expiration (TTL)**: Tasks automatically expire and clean up from Redis after **7 days** of inactivity.
-* ✅ **Create Tasks**: Add new tasks with instant UI updates and unique UUIDs.
-* ✏️ **Edit Tasks**: Inline edit mode to update task descriptions without losing state.
-* 🗑️ **Delete Tasks**: Remove individual tasks safely.
-* ✔️ **Complete Tasks**: Toggle completion status with visual line-through feedback.
-* 🧹 **Clear All**: Bulk clear all tasks for the current session with confirmation dialogs.
-* 🔄 **RESTful API**: Clean Express.js backend routing, dynamic CORS, and error handling.
-* ⚡ **Redis In-Memory Storage**: Fast Hash storage (`hSet`, `hGetAll`, `hDel`, `del`, `expire`).
-* 🐳 **Docker Multi-Stage Builds**: Optimized, lightweight container images using Alpine Linux and NGINX.
-* ☸️ **Kubernetes Ready**: Declarative Deployments and Services for production scaling and service discovery.
-* 📱 **Responsive UI**: Styled with Tailwind CSS for mobile, tablet, and desktop screens.
+* 🔐 **User Authentication**: Secure user registration, login, and JWT Bearer token session authorization with **Bcrypt** password hashing.
+* 🗄️ **PostgreSQL Relational Storage**: Durable persistence for user accounts and todos with strict foreign key constraints and user data isolation.
+* ⚡ **Redis Distributed Rate Limiting**: Request counting and sliding-window throttling on authentication routes (10 req/min) and API endpoints (100 req/min) returning standard `X-RateLimit-*` and HTTP `429 Too Many Requests`.
+* ✅ **Full Todo Management**: Create, edit, toggle completion, search, filter (All / Active / Completed), and delete tasks with instant feedback.
+* 📊 **Live Progress & Stats**: Interactive overview tracker with completion percentage progress bar.
+* 🔄 **RESTful API**: Clean Express.js backend routing, automated database schema initialization on boot, CORS, and unified error handling.
+* 🐳 **Docker Multi-Stage Builds**: Optimized, lightweight container images using Alpine Linux, PostgreSQL 16 Alpine, and Redis 7 Alpine.
+* ☸️ **Kubernetes Ready**: Declarative Deployments, Services, and Persistent Volume Claims.
+* 📱 **Responsive UI**: Modern glassmorphic aesthetic styled with Tailwind CSS for mobile, tablet, and desktop screens.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### 💻 Language
+### 💻 Language & Core
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 
 ### 🎨 Frontend
@@ -39,183 +36,95 @@ The application features **client session isolation** and **automatic Redis TTL 
 ### ⚙️ Backend
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
-![REST API](https://img.shields.io/badge/REST_API-02569B?style=for-the-badge)
+![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=jsonwebtokens)
 
-### 🗄️ Database
+### 🗄️ Databases & Caching
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 
 ### 🐳 DevOps & Deployment
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 
 ---
 
 ## 🏗️ Architecture & Data Flow
 
 ```text
-  [ User Web Browser ]
-           │
-           │ HTTP Requests (Header: x-session-id)
-           ▼
- ┌────────────────────────────────────────────────┐
- │  Frontend Container (Nginx / React Port 3000)   │
- └────────────────────────────────────────────────┘
-           │
-           ▼
- ┌────────────────────────────────────────────────┐
- │   Backend Container (Express API Port 3001)    │
- └────────────────────────────────────────────────┘
-           │
-           ▼ Redis Hashes (Key: todos:<session_id>, TTL: 7 Days)
- ┌────────────────────────────────────────────────┐
- │          Redis In-Memory Data Store            │
- └────────────────────────────────────────────────┘
-```
-
-1. **Frontend**: The React UI checks `localStorage` for a `todo_session_id` (or creates one with `uuidv4()`), attaching it as `x-session-id` in all HTTP requests. In production, static assets are served via high-performance **NGINX**.
-2. **Backend**: Express REST API extracts the session ID and queries or modifies Redis hashes scoped specifically to `todos:<session_id>`.
-3. **Redis**: Stores tasks in memory and maintains a **7-day expiration timer (TTL)** refreshed upon task additions or edits.
-
----
-
-## 📂 Project Structure
-
-```text
-dockerized-todolist/
-├── Frontend/                 # React Frontend (Vite + Tailwind CSS)
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Body.jsx     # Main Todo list interface & session state logic
-│   │   │   ├── Navbar.jsx   # Header navigation
-│   │   │   └── Navbar.test.jsx # Vitest component tests
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── Dockerfile           # Multi-stage build (Node.js -> NGINX)
-│   ├── .dockerignore        # Excludes node_modules & dist
-│   └── package.json
-├── Backend/                  # Express API Backend
-│   ├── Todooperations/
-│   │   └── todoOperations.js # Session-scoped Redis operations & router
-│   ├── app.js               # Express application & CORS configuration
-│   ├── server.js            # Server startup
-│   ├── todo.test.js         # Jest API unit & integration tests
-│   ├── Dockerfile           # Node.js 18 Alpine container image
-│   ├── .dockerignore        # Excludes node_modules
-│   └── package.json
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml        # CI/CD pipeline (Lint, Test, Build & GHCR push)
-├── docker-compose.yml        # Multi-container orchestration (Frontend, Backend, Redis)
-├── backend-deployment.yaml   # Kubernetes backend deployment manifest
-├── backend-service.yaml      # Kubernetes backend service manifest
-├── frontend-deployment.yaml  # Kubernetes frontend deployment manifest
-├── frontend-service.yaml     # Kubernetes frontend service manifest
-├── redis-deployment.yaml     # Kubernetes redis deployment manifest
-├── redis-service.yaml        # Kubernetes redis service manifest
-├── .dockerignore             # Root Docker ignore rules
-└── README.md
+  [ User Web Browser / Mobile ]
+               │
+               │ HTTP Requests (Header: Authorization: Bearer <JWT>)
+               ▼
+   ┌─────────────────────────────────────────────────────────┐
+   │                  Express.js Backend                     │
+   │                                                         │
+   │  1. Redis Rate Limiter Middleware                       │
+   │     - Sliding window counter & HTTP 429 throttling     │
+   │                                                         │
+   │  2. JWT Authentication Middleware                       │
+   │     - Validates Bearer token & attaches req.user        │
+   │                                                         │
+   │  3. API Controllers (/api/auth, /todo)                  │
+   └───────────────┬─────────────────────────┬───────────────┘
+                   │                         │
+     (Read / Write Rate Limits)    (Durable User & Task Storage)
+                   │                         │
+                   ▼                         ▼
+         ┌───────────────────┐     ┌───────────────────┐
+         │      Redis 7      │     │   PostgreSQL 16   │
+         │   (Rate Limits)   │     │   (Users, Todos)  │
+         └───────────────────┘     └───────────────────┘
 ```
 
 ---
 
-## 🚀 How to Run with Docker
+## 🚀 Quick Start with Docker Compose
 
-Running the app with Docker Compose automatically builds and launches all containers:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Algon31/dockerized-todolist.git
+   cd dockerized-todolist
+   ```
 
-### 1. Clone the repository
+2. **Start the full stack with Docker Compose:**
+   ```bash
+   docker compose up --build
+   ```
 
-```bash
-git clone https://github.com/Algon31/dockerized-todolist.git
-cd dockerized-todolist
-```
-
-### 2. Build and start the containers
-
-```bash
-docker compose up --build
-```
-
-Docker Compose will automatically:
-* Build the **Frontend** multi-stage image and serve it via NGINX on port `3000`.
-* Build the **Backend** Node.js image and serve it on port `3001`.
-* Spin up the **Redis** container on port `6379`.
-* Connect all 3 containers on a unified bridge network with automatic DNS resolution.
-
-### 3. Access the Application
-
-* **Frontend UI**: Open [`http://localhost:3000`](http://localhost:3000) in your browser.
-* **Backend API**: Accessible at [`http://localhost:3001/todo`](http://localhost:3001/todo).
-
-To stop the running containers:
-
-```bash
-docker compose down
-```
+3. **Access the application:**
+   * **Frontend UI**: [http://localhost:3000](http://localhost:3000)
+   * **Backend API**: [http://localhost:3001](http://localhost:3001)
+   * **Health Check**: [http://localhost:3001/health](http://localhost:3001/health)
 
 ---
 
-## 🧪 Testing
+## 🧪 Running Tests
 
-### Backend Unit & Integration Tests (Jest)
+### Backend Tests (Jest)
 ```bash
 cd Backend
 npm test
 ```
-* Tests API CRUD endpoints (`GET`, `POST`, `PUT`, `DELETE`, `/clear`).
-* Validates session isolation (`x-session-id` header handling).
-* Mocks Redis client and verifies TTL expiration calls.
 
-### Frontend Component Tests (Vitest)
+### Frontend Tests (Vitest)
 ```bash
 cd Frontend
-npm test
+npm run test
 ```
-* Runs component tests and verifies DOM rendering with `@testing-library/react`.
 
 ---
 
-## 🔌 API Endpoints
+## 🔒 API Endpoints
 
-All endpoints support the optional `x-session-id` header for user data isolation.
+### Authentication (`/api/auth`)
+* `POST /api/auth/register` - Create account `{ email, password }`
+* `POST /api/auth/login` - Login and receive JWT `{ email, password }`
+* `GET /api/auth/me` - Get profile of authenticated user
 
-| Method | Endpoint | Headers | Description |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/todo` | `x-session-id: <id>` | Fetch all todos for the active session |
-| `POST` | `/todo` | `x-session-id: <id>` | Create a new todo and set/refresh 7-day TTL |
-| `PUT` | `/todo/:id` | `x-session-id: <id>` | Update an existing todo text or completion status |
-| `DELETE` | `/todo/:id` | `x-session-id: <id>` | Delete a single todo item by ID |
-| `POST` | `/todo/clear` | `x-session-id: <id>` | Clear all todos belonging to the active session |
-
----
-
-## 🔄 CI/CD Pipeline
-
-Automated Continuous Integration and Continuous Deployment (CI/CD) is implemented using **GitHub Actions** (`.github/workflows/ci-cd.yml`).
-
-### ⚙️ Pipeline Overview
-
-1. **Backend CI (`test-backend`)**:
-   * Installs Node 18 dependencies.
-   * Runs backend test suite via Jest (`npm test`).
-
-2. **Frontend CI (`test-frontend`)**:
-   * Installs Node 18 dependencies.
-   * Runs ESLint (`npm run lint`).
-   * Executes unit & component tests via Vitest (`npm test`).
-   * Validates production application build (`npm run build`).
-
-3. **Docker Build & Push CD (`build-and-push`)**:
-   * Triggered automatically after tests pass on `main` branch or tag releases (`v*.*.*`).
-   * Builds production Docker images for **Backend** and **Frontend**.
-   * Pushes tagged container images to **GitHub Container Registry (GHCR)** (`ghcr.io/algon31/todo-backend`, `ghcr.io/algon31/todo-frontend`).
-
----
-
-## 👨‍💻 Author
-
-**Ravi Bhuvan**
-
-* GitHub: [https://github.com/Algon31](https://github.com/Algon31)
-* LinkedIn: [https://www.linkedin.com/in/ravi-bhuvan-985399286/](https://www.linkedin.com/in/ravi-bhuvan-985399286/)
+### Todos (`/todo`) [Protected by JWT & Rate Limiter]
+* `GET /todo` - List todos for logged-in user
+* `POST /todo` - Create new todo `{ id, todo, iscompleted }`
+* `PUT /todo/:id` - Update task content or toggle completion
+* `DELETE /todo/:id` - Delete task
+* `POST /todo/clear` - Clear all tasks for logged-in user
