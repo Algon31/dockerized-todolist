@@ -2,7 +2,7 @@
 
 [![CI/CD Pipeline](https://github.com/Algon31/dockerized-todolist/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Algon31/dockerized-todolist/actions/workflows/ci-cd.yml)
 
-A production-grade, full-stack, cloud-native Todo List application built with **React (Vite + NGINX)**, **Node.js (Express)**, **PostgreSQL 16**, and **Redis 7**, fully containerized using **Docker**, **Docker Compose**, and **Kubernetes**.
+A production-grade, full-stack, cloud-native Todo List application built with **React (Vite + NGINX)**, **Node.js (Express)**, **PostgreSQL 16 (or Supabase)**, and **Redis 7 (or Upstash)**, fully containerized using **Docker**, **Docker Compose**, and **Kubernetes**.
 
 TodoList V2 introduces **User Authentication (JWT + Bcrypt)**, **PostgreSQL Relational Persistence**, and high-performance **Redis-backed Rate Limiting** with automatic request throttling and brute-force mitigation.
 
@@ -40,12 +40,14 @@ TodoList V2 introduces **User Authentication (JWT + Bcrypt)**, **PostgreSQL Rela
 
 ### 🗄️ Databases & Caching
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 
 ### 🐳 DevOps & Deployment
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
 
 ---
 
@@ -60,7 +62,7 @@ TodoList V2 introduces **User Authentication (JWT + Bcrypt)**, **PostgreSQL Rela
    │                  Express.js Backend                     │
    │                                                         │
    │  1. Redis Rate Limiter Middleware                       │
-   │     - Sliding window counter & HTTP 429 throttling     │
+   │     - Sliding window counter & HTTP 429 throttling      │
    │                                                         │
    │  2. JWT Authentication Middleware                       │
    │     - Validates Bearer token & attaches req.user        │
@@ -76,6 +78,25 @@ TodoList V2 introduces **User Authentication (JWT + Bcrypt)**, **PostgreSQL Rela
          │   (Rate Limits)   │     │   (Users, Todos)  │
          └───────────────────┘     └───────────────────┘
 ```
+
+---
+
+## ⚙️ Environment Variables
+
+### Backend (`Backend/.env`)
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `NODE_ENV` | Application environment | `development` or `production` |
+| `PORT` | Backend server port | `3000` |
+| `DATABASE_URL` | PostgreSQL connection URI | `postgresql://postgres:password@localhost:5432/tododb` |
+| `REDIS_URL` | Redis connection URI | `redis://localhost:6379` |
+| `JWT_SECRET` | Secret key used for signing JWTs | `your_secure_random_jwt_secret` |
+| `FRONTEND_URL` | Frontend URL for CORS permissions | `http://localhost:3000` |
+
+### Frontend (`Frontend/.env`)
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `VITE_API_URL` | Backend API base URL | `http://localhost:3001` or `https://your-backend.onrender.com` |
 
 ---
 
@@ -99,15 +120,38 @@ TodoList V2 introduces **User Authentication (JWT + Bcrypt)**, **PostgreSQL Rela
 
 ---
 
+## ☸️ Kubernetes Deployment
+
+Deploy all services to a Kubernetes cluster using the provided manifests:
+
+```bash
+# 1. PostgreSQL Storage & Service
+kubectl apply -f postgres-pvc.yaml
+kubectl apply -f postgres-deployment.yaml
+kubectl apply -f postgres-service.yaml
+
+# 2. Redis Deployment & Service
+kubectl apply -f redis-deployment.yaml
+kubectl apply -f redis-service.yaml
+
+# 3. Backend & Frontend
+kubectl apply -f backend-deployment.yaml
+kubectl apply -f backend-service.yaml
+kubectl apply -f frontend-deployment.yaml
+kubectl apply -f frontend-service.yaml
+```
+
+---
+
 ## 🧪 Running Tests
 
-### Backend Tests (Jest)
+### Backend Tests (Jest & Supertest)
 ```bash
 cd Backend
 npm test
 ```
 
-### Frontend Tests (Vitest)
+### Frontend Tests (Vitest & Testing Library)
 ```bash
 cd Frontend
 npm run test
