@@ -1,8 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-
-const AuthContext = createContext(null);
-
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import React, { useState, useEffect, useCallback } from "react";
+import { AuthContext } from "./authContextInstance";
+import { API_URL } from "../config/api";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -112,7 +110,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       closeAuthModal();
       return { success: true };
-    } catch (err) {
+    } catch {
       return { success: false, error: "Network error connecting to server" };
     }
   };
@@ -141,7 +139,7 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       closeAuthModal();
       return { success: true };
-    } catch (err) {
+    } catch {
       return { success: false, error: "Network error connecting to server" };
     }
   };
@@ -176,10 +174,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export default AuthProvider;

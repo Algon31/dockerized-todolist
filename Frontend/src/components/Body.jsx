@@ -14,7 +14,8 @@ import {
   FaBolt,
   FaExclamationTriangle,
 } from "react-icons/fa";
-import { useAuth, API_URL } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
+import { API_URL } from "../config/api";
 
 const Body = () => {
   const { user, token, isAuthenticated, openAuthModal, rateLimitState, triggerRateLimit } =

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { FaTimes, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUserCheck, FaUserPlus } from "react-icons/fa";
 
 const AuthModal = () => {

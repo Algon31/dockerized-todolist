@@ -1,8 +1,20 @@
 const { Pool } = require("pg");
 
+const isProduction = process.env.NODE_ENV === "production";
+const isRemoteDb =
+  process.env.DATABASE_URL &&
+  (process.env.DATABASE_URL.includes("supabase.co") ||
+    process.env.DATABASE_URL.includes("pooler.supabase.com") ||
+    process.env.DATABASE_URL.includes("render.com") ||
+    process.env.DATABASE_URL.includes("neon.tech") ||
+    isProduction);
+
 const pool = new Pool(
   process.env.DATABASE_URL
-    ? { connectionString: process.env.DATABASE_URL }
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: isRemoteDb ? { rejectUnauthorized: false } : false,
+      }
     : {
         host: process.env.PGHOST || "localhost",
         port: parseInt(process.env.PGPORT || "5432", 10),
